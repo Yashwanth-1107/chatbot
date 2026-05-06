@@ -39,61 +39,125 @@
 
 
 
+# import streamlit as st
+# import google.generativeai as genai
+# import os
+
+# # ---------------------------
+# # CONFIGURE API KEY
+# # ---------------------------
+# api_key = os.getenv("GOOGLE_API_KEY")
+
+# if not api_key:
+#     st.error("⚠️ GOOGLE_API_KEY not found. Add it in Streamlit Secrets.")
+#     st.stop()
+
+# genai.configure(api_key=api_key)
+
+# # ---------------------------
+# # MODEL INITIALIZATION
+# # ---------------------------
+# model = genai.GenerativeModel("gemini-pro")
+
+# # ---------------------------
+# # STREAMLIT UI
+# # ---------------------------
+# st.set_page_config(page_title="AI Chatbot", page_icon="🤖")
+# st.title("🤖 Gemini AI Chatbot")
+
+# # Chat history
+# if "chat_history" not in st.session_state:
+#     st.session_state.chat_history = []
+
+# # Display previous chat
+# for role, msg in st.session_state.chat_history:
+#     with st.chat_message(role):
+#         st.write(msg)
+
+# # User input
+# user_input = st.chat_input("Type your message here...")
+
+# # ---------------------------
+# # CHAT LOGIC
+# # ---------------------------
+# if user_input:
+#     # Show user message
+#     st.chat_message("user").write(user_input)
+#     st.session_state.chat_history.append(("user", user_input))
+
+#     try:
+#         # Generate response
+#         response = model.generate_content(user_input)
+
+#         bot_reply = response.text
+
+#     except Exception as e:
+#         bot_reply = f"⚠️ Error: {str(e)}"
+
+#     # Show bot response
+#     st.chat_message("assistant").write(bot_reply)
+#     st.session_state.chat_history.append(("assistant", bot_reply))
+
+
 import streamlit as st
-import google.generativeai as genai
 import os
+from groq import Groq
 
 # ---------------------------
-# CONFIGURE API KEY
+# CONFIGURE GROQ API KEY
 # ---------------------------
-api_key = os.getenv("GOOGLE_API_KEY")
+api_key = os.getenv("GROQ_API_KEY")
 
 if not api_key:
-    st.error("⚠️ GOOGLE_API_KEY not found. Add it in Streamlit Secrets.")
+    st.error("⚠️ GROQ_API_KEY not found. Add it in Streamlit Secrets.")
     st.stop()
 
-genai.configure(api_key=api_key)
-
-# ---------------------------
-# MODEL INITIALIZATION
-# ---------------------------
-model = genai.GenerativeModel("gemini-pro")
+client = Groq(api_key=api_key)
 
 # ---------------------------
 # STREAMLIT UI
 # ---------------------------
-st.set_page_config(page_title="AI Chatbot", page_icon="🤖")
-st.title("🤖 Gemini AI Chatbot")
+st.set_page_config(page_title="Groq AI Chatbot", page_icon="🤖")
+st.title("🤖 Groq AI Chatbot (LLaMA)")
 
 # Chat history
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 
-# Display previous chat
+# Display chat history
 for role, msg in st.session_state.chat_history:
     with st.chat_message(role):
         st.write(msg)
 
 # User input
-user_input = st.chat_input("Type your message here...")
+user_input = st.chat_input("Type your message...")
 
 # ---------------------------
 # CHAT LOGIC
 # ---------------------------
 if user_input:
-    # Show user message
+    # show user message
     st.chat_message("user").write(user_input)
     st.session_state.chat_history.append(("user", user_input))
 
     try:
-        # Generate response
-        response = model.generate_content(user_input)
+        response = client.chat.completions.create(
+            model="llama-3.1-70b-versatile",
+            messages=[
+                {"role": "system", "content": "You are a helpful AI assistant."},
+                *[
+                    {"role": r, "content": m}
+                    for r, m in st.session_state.chat_history
+                ],
+                {"role": "user", "content": user_input}
+            ]
+        )
 
-        bot_reply = response.text
+        bot_reply = response.choices[0].message.content
 
     except Exception as e:
         bot_reply = f"⚠️ Error: {str(e)}"
 
-    # Show bot response
+    # show bot response
     st.chat_message("assistant").write(bot_reply)
     st.session_state.chat_history.append(("assistant", bot_reply))
