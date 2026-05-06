@@ -6,7 +6,7 @@ from groq import Groq
 # ---------------------------
 st.set_page_config(page_title="Groq Chatbot", page_icon="🤖")
 
-st.title("🤖 Groq AI Chatbot")
+st.title("🤖 Ambati Yashwanth AI Chatbot")
 
 # ---------------------------
 # API KEY (Streamlit Secrets)
