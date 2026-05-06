@@ -11,11 +11,10 @@ st.title("🤖 Groq AI Chatbot")
 # ---------------------------
 # API KEY (Streamlit Secrets)
 # ---------------------------
-api_key = st.secrets["GROQ_API_KEY"]
-client = Groq(api_key=api_key)
+client = Groq(api_key=st.secrets["GROQ_API_KEY"])
 
 # ---------------------------
-# SAFE MODEL (DO NOT CHANGE OLD MODELS)
+# SAFE MODEL (NO DEPRECATED MODELS)
 # ---------------------------
 MODEL = "llama-3.1-8b-instant"
 
@@ -41,11 +40,11 @@ if user_input:
     st.session_state.messages.append({"role": "user", "content": user_input})
 
     try:
-        # GROQ API CALL
+        # Groq API call
         response = client.chat.completions.create(
             model=MODEL,
             messages=[
-                {"role": "system", "content": "You are a helpful AI assistant."},
+                {"role": "system", "content": "You are a helpful assistant."},
                 *st.session_state.messages
             ]
         )
@@ -55,6 +54,6 @@ if user_input:
     except Exception as e:
         bot_reply = f"⚠️ Error: {e}"
 
-    # show bot reply
+    # show bot response
     st.chat_message("assistant").write(bot_reply)
     st.session_state.messages.append({"role": "assistant", "content": bot_reply})
