@@ -15,17 +15,17 @@ api_key = st.secrets["GROQ_API_KEY"]
 client = Groq(api_key=api_key)
 
 # ---------------------------
-# MODEL (STABLE + WORKING)
+# SAFE MODEL (DO NOT CHANGE OLD MODELS)
 # ---------------------------
-MODEL = "llama-3.1-8b-instant"   # ✅ SAFE MODEL
+MODEL = "llama-3.1-8b-instant"
 
 # ---------------------------
-# CHAT HISTORY
+# SESSION STATE (CHAT MEMORY)
 # ---------------------------
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# Show previous chat
+# Show chat history
 for msg in st.session_state.messages:
     with st.chat_message(msg["role"]):
         st.write(msg["content"])
@@ -41,7 +41,7 @@ if user_input:
     st.session_state.messages.append({"role": "user", "content": user_input})
 
     try:
-        # Groq API call
+        # GROQ API CALL
         response = client.chat.completions.create(
             model=MODEL,
             messages=[
@@ -55,6 +55,6 @@ if user_input:
     except Exception as e:
         bot_reply = f"⚠️ Error: {e}"
 
-    # show bot message
+    # show bot reply
     st.chat_message("assistant").write(bot_reply)
     st.session_state.messages.append({"role": "assistant", "content": bot_reply})

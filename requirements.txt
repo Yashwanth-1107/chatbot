@@ -1,2 +1,2 @@
 streamlit
-groq
+groq==1.2.0
