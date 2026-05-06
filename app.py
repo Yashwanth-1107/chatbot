@@ -4,12 +4,9 @@ from groq import Groq
 st.set_page_config(page_title="Groq Chatbot", page_icon="🤖")
 st.title("🤖 Groq AI Chatbot")
 
-# API KEY (STREAMLIT SECRETS)
-api_key = st.secrets["GROQ_API_KEY"]
-client = Groq(api_key=api_key)
+client = Groq(api_key=st.secrets["GROQ_API_KEY"])
 
-# FIXED MODEL (WORKING NOW)
-MODEL = "llama-3.3-70b-versatile"
+MODEL = "llama-3.1-8b-instant"
 
 if "chat" not in st.session_state:
     st.session_state.chat = []
@@ -18,7 +15,7 @@ for r, m in st.session_state.chat:
     with st.chat_message(r):
         st.write(m)
 
-msg = st.chat_input("Type here...")
+msg = st.chat_input("Type message...")
 
 if msg:
     st.chat_message("user").write(msg)
@@ -28,7 +25,7 @@ if msg:
         res = client.chat.completions.create(
             model=MODEL,
             messages=[
-                {"role": "system", "content": "You are helpful AI"},
+                {"role": "system", "content": "You are a helpful assistant."},
                 {"role": "user", "content": msg}
             ]
         )
@@ -36,7 +33,7 @@ if msg:
         reply = res.choices[0].message.content
 
     except Exception as e:
-        reply = f"Error: {e}"
+        reply = f"⚠️ Error: {e}"
 
     st.chat_message("assistant").write(reply)
     st.session_state.chat.append(("assistant", reply))
