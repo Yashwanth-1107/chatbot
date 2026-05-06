@@ -100,36 +100,69 @@
 
 
 import streamlit as st
-import os
 from groq import Groq
 
 # ---------------------------
-# CONFIGURE GROQ API KEY
+# STREAMLIT CONFIG
 # ---------------------------
-api_key = os.getenv("GROQ_API_KEY")
+st.set_page_config(page_title="Groq Chatbot", page_icon="🤖")
 
-if not api_key:
-    st.error("⚠️ GROQ_API_KEY not found. Add it in Streamlit Secrets.")
+st.title("🤖 Groq AI Chatbot")
+
+# ---------------------------
+# API KEY (STREAMLIT SECRETS)
+# ---------------------------
+try:
+    api_key = st.secrets["GROQ_API_KEY"]
+except Exception:
+    st.error("⚠️ GROQ_API_KEY not found in Streamlit Secrets")
     st.stop()
 
 client = Groq(api_key=api_key)
 
 # ---------------------------
-# STREAMLIT UI
+# GET BEST AVAILABLE MODEL (SAFE)
 # ---------------------------
-st.set_page_config(page_title="Groq AI Chatbot", page_icon="🤖")
-st.title("🤖 Groq AI Chatbot (LLaMA)")
+def get_best_model():
+    try:
+        models = client.models.list()
+        model_ids = [m.id for m in models.data]
 
-# Chat history
+        preferred_models = [
+            "llama-3.3-70b-versatile",
+            "llama-3.3-8b-instant",
+            "llama-3.1-8b-instant",
+            "mixtral-8x7b-32768",
+            "gemma2-9b-it"
+        ]
+
+        for m in preferred_models:
+            if m in model_ids:
+                return m
+
+        return model_ids[0]
+
+    except Exception:
+        return "llama-3.3-70b-versatile"
+
+MODEL = get_best_model()
+
+st.caption(f"Using model: {MODEL}")
+
+# ---------------------------
+# SESSION STATE (CHAT MEMORY)
+# ---------------------------
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 
-# Display chat history
+# Show chat history
 for role, msg in st.session_state.chat_history:
     with st.chat_message(role):
         st.write(msg)
 
-# User input
+# ---------------------------
+# USER INPUT
+# ---------------------------
 user_input = st.chat_input("Type your message...")
 
 # ---------------------------
@@ -142,14 +175,16 @@ if user_input:
 
     try:
         response = client.chat.completions.create(
-            model="llama-3.1-70b-versatile",
+            model=MODEL,
             messages=[
-                {"role": "system", "content": "You are a helpful AI assistant."},
-                *[
-                    {"role": r, "content": m}
-                    for r, m in st.session_state.chat_history
-                ],
-                {"role": "user", "content": user_input}
+                {
+                    "role": "system",
+                    "content": "You are a helpful AI assistant."
+                },
+                {
+                    "role": "user",
+                    "content": user_input
+                }
             ]
         )
 
@@ -158,6 +193,6 @@ if user_input:
     except Exception as e:
         bot_reply = f"⚠️ Error: {str(e)}"
 
-    # show bot response
+    # show bot reply
     st.chat_message("assistant").write(bot_reply)
     st.session_state.chat_history.append(("assistant", bot_reply))
